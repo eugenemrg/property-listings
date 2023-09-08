@@ -7,6 +7,7 @@ from model.models import Agent, ResidentialProperty, CommercialProperty
 
 property_types = ['Apartment', 'Townhouse', 'Bungalow', 'Duplex', 'Condominium', 'Warehouse', 'Office']
 residential_property_types = ['Apartment', 'Townhouse', 'Bungalow', 'Duplex', 'Condominium']
+commercial_property_types = ['Warehouse', 'Office']
 
 @click.group()
 def cli():
@@ -45,7 +46,7 @@ def show_agents():
         click.echo(agent)
 
 @click.command()
-@click.option('--type', type=click.Choice(property_types , case_sensitive=False), prompt='Enter a property type to search for: ', help='first name')
+@click.option('--type', type=click.Choice(property_types , case_sensitive=False), prompt='Enter a property type to search for: ', help='property type')
 def show_all(type):
     """Show all the property listings"""
     click.secho(click.style(' All Properties '.upper(), blink=True, bold=True, bg='red', fg='white'))
@@ -53,7 +54,7 @@ def show_all(type):
     print(*session.query(property).filter(property.type == type), sep='\n\n')
 
 @click.command()
-@click.option('--type', type=click.Choice(property_types, case_sensitive=False), prompt='Enter a property type to search for: ', help='first name')
+@click.option('--type', type=click.Choice(property_types, case_sensitive=False), prompt='Enter a property type to search for: ', help='property type')
 @click.option('--name', prompt='Enter the property name', help='first name')
 def search_by_name(type, name):
     """Search for a listing using the property name"""
@@ -62,15 +63,27 @@ def search_by_name(type, name):
     print(*session.query(property).filter(property.name.ilike(f'%{name}%')), sep='\n\n')
 
 @click.command()
-@click.option('--type', type=click.Choice(property_types, case_sensitive=False), prompt='Enter a property type to search for: ', help='first name')
+@click.option('--type', type=click.Choice(property_types, case_sensitive=False), prompt='Enter a property type to search for: ', help='property type')
 @click.option('--id', type=int, prompt='Enter property id: ', required=True)
 def search_by_id(type, id):
     """Search for a listing using the property id"""
     property = get_category(type)
     print(*session.query(property).filter(property.id == id), sep='\n\n')
+    
+@click.command()
+@click.option('--type', type=click.Choice(property_types, case_sensitive=False), prompt='Enter a property type to search for: ', help='property type')
+@click.option('--id', type=int, prompt='Enter property id: ', required=True)
+def show_detail_by_id(type, id):
+    """Shows details for a listing using the property id"""
+    property = get_category(type)
+    if property == ResidentialProperty:
+        pass
+    elif property == CommercialProperty:
+        pass
+    print(*session.query(property).filter(property.id == id), sep='\n\n')
 
 @click.command()
-@click.option('--type', type=click.Choice(property_types, case_sensitive=False), prompt='Enter a property type to search for: ', help='first name')
+@click.option('--type', type=click.Choice(property_types, case_sensitive=False), prompt='Enter a property type to search for: ', help='property type')
 @click.option('--city-name', type=str, prompt='Enter city name: ', help='city name', required=True)
 def search_by_city(type, city_name):
     """Search for all the property listings in a city"""
@@ -122,11 +135,74 @@ def delete_listing(type, property_id, agent_id):
             click.echo('Property Deleted!')
     else:
         click.echo('No matching property found!')
+
+@click.command()
+@click.option('--name', prompt='Enter property name', help='residential property name', required=True, type=str)
+@click.option('--address', prompt='Enter property address', help='residential property address', required=True, type=str)
+@click.option('--city',prompt='Enter city', help='residential property city', required=True, type=str)
+@click.option('--area',prompt='Enter area', help='residential property area', required=True, type=str)
+@click.option('--type',prompt='Enter residence type', help='residential property type', required=True, type=click.Choice(residential_property_types , case_sensitive=False))
+@click.option('--bedrooms',prompt='Enter number of bedrooms', help='number of bedrooms', required=True, type=int)
+@click.option('--bathrooms',prompt='Enter number of bathrooms', help='number of bathrooms', required=True, type=int)
+@click.option('--space',prompt='Enter size of property in sqft', help='residential property size in sqft', required=True, type=int)
+@click.option('--agent_id',prompt='Enter agent id', help='residential property listing agent id', required=True, type=int)
+def add_residence(name, address, city, area, type, bedrooms, bathrooms, space, agent_id):
+    """Add a new residential property to the system"""
+    
+    residence = ResidentialProperty(
+        name = name,
+        address = address,
+        city = city,
+        area = area,
+        type = type,
+        bedrooms = bedrooms,
+        bathrooms = bathrooms,
+        floor_space_sqf = space,
+        agent = session.query(Agent).filter(Agent.id == agent_id).first()
+    )
+    
+    session.add(residence)
+    session.commit()
+    session.refresh(residence)
+    
+    click.echo('New Residence Added:')
+    click.echo(residence)
+
+@click.command()
+@click.option('--name', prompt='Enter property name', help='commercial property name', required=True, type=str)
+@click.option('--address', prompt='Enter property address', help='commercial property address', required=True, type=str)
+@click.option('--city',prompt='Enter city', help='commercial property city', required=True, type=str)
+@click.option('--area',prompt='Enter area', help='commercial property area', required=True, type=str)
+@click.option('--type',prompt='Enter property type', help='commercial property type', required=True, type=click.Choice(commercial_property_types, case_sensitive=False))
+@click.option('--grade',prompt='Enter property grading', help='commercial property grading', required=True, type=click.Choice(['A','B','C'], case_sensitive=False))
+@click.option('--price',prompt='Enter price', help='property price per sqft', required=True, type=int)
+@click.option('--agent_id',prompt='Enter agent id', help='commercial property listing agent id', required=True, type=int)
+def add_commercial_property(name, address, city, area, type, grade, price, agent_id):
+    """Add a new commercial property to the system"""
+    property = CommercialProperty(
+        name = name,
+        address = address,
+        city = city,
+        area = area,
+        type = type,
+        grade = grade,
+        price_per_sqf = price,
+        agent = session.query(Agent).filter(Agent.id == agent_id).first()
+    )
+    
+    session.add(property)
+    session.commit()
+    session.refresh(property)
+    
+    click.echo('New property added:')
+    click.echo(property)
             
 
 def get_category(type):
     return ResidentialProperty if type in residential_property_types else CommercialProperty
 
+cli.add_command(add_residence)
+cli.add_command(add_commercial_property)
 cli.add_command(add_agent)
 cli.add_command(show_cities)
 cli.add_command(show_areas)
