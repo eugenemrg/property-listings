@@ -77,7 +77,16 @@ def show_detail_by_id(type, id):
     """Shows details for a listing using the property id"""
     property = get_category(type)
     if property == ResidentialProperty:
-        pass
+        place = session.query(property).filter(property.id == id).first()
+        print(f'Name: {place.name}')
+        print(f'Address: {place.address}')
+        print(f'City: {place.city}')
+        print(f'Area/Neighborhood: {place.name}')
+        print(f'Residence type: {place.type}')
+        print(f'Bedrooms: {place.bedrooms}')
+        print(f'Bathrooms: {place.bathrooms}')
+        print(f'Space: {place.floor_space_sqf}')
+        print(f'Agent: {place.agent}')
     elif property == CommercialProperty:
         pass
     print(*session.query(property).filter(property.id == id), sep='\n\n')
@@ -207,6 +216,7 @@ cli.add_command(add_agent)
 cli.add_command(show_cities)
 cli.add_command(show_areas)
 cli.add_command(show_agents)
+cli.add_command(show_detail_by_id)
 cli.add_command(show_all)
 cli.add_command(search_by_name)
 cli.add_command(search_by_id)
