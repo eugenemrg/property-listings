@@ -28,7 +28,7 @@ properties and users a way to filter through and query properties and property d
 - Clone/Download the code from the repository, navigate to the directory on the terminal
 - Run `pipenv install` to install required packages
 - Run `pipenv shell` to use the project in created project environment
-- To run the program and access the features, run `cd lib`, in the lib directory, then run `python app.py` to start the app
+- To run the program and access the features, run `cd lib`, then in the lib directory, run `python app.py` to start the app
 - To populate the database, run `cd lib` if you're not in the `lib` directory, in the lib directory run `python seed.py` to generate sample data for the database
 
 ## Language(s)
